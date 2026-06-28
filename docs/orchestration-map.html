@@ -1,0 +1,1170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenCode Orchestration Map</title>
+  <style>
+    :root {
+      --ink: #151817;
+      --muted: #5d6763;
+      --paper: #f3f5f2;
+      --surface: #ffffff;
+      --line: #c8d0cc;
+      --line-strong: #7d8984;
+      --control: #b8f04a;
+      --evidence: #40cbb8;
+      --scout: #73bd7a;
+      --execute: #f0c64d;
+      --verify: #57b8e6;
+      --review: #8ca7ff;
+      --risk: #ff725c;
+      --danger: #c94b3c;
+      --shadow: 0 12px 32px rgba(21, 24, 23, 0.08);
+      --radius: 5px;
+      --mono: Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --display: "Avenir Next", Avenir, "Century Gothic", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: var(--display);
+      letter-spacing: 0;
+    }
+
+    button, input { font: inherit; letter-spacing: 0; }
+
+    button:focus-visible {
+      outline: 3px solid var(--ink);
+      outline-offset: 3px;
+    }
+
+    .shell {
+      width: min(1480px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .masthead {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 28px;
+      align-items: end;
+      padding-bottom: 22px;
+      border-bottom: 2px solid var(--ink);
+      animation: enter 420ms ease-out both;
+    }
+
+    .eyebrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      align-items: center;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font: 700 11px/1.2 var(--mono);
+      text-transform: uppercase;
+    }
+
+    .live-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--ink);
+    }
+
+    .live-mark::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      background: var(--control);
+      border: 1px solid var(--ink);
+      box-shadow: 0 0 0 3px rgba(184, 240, 74, 0.3);
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 900px;
+      font-size: clamp(34px, 6vw, 76px);
+      line-height: 0.96;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .masthead-copy {
+      max-width: 760px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(90px, 1fr));
+      min-width: 340px;
+      border: 1px solid var(--ink);
+      background: var(--surface);
+    }
+
+    .metric {
+      min-height: 86px;
+      padding: 14px;
+      border-right: 1px solid var(--ink);
+    }
+
+    .metric:last-child { border-right: 0; }
+
+    .metric strong {
+      display: block;
+      margin-bottom: 6px;
+      font: 800 26px/1 var(--mono);
+    }
+
+    .metric span {
+      color: var(--muted);
+      font: 700 10px/1.35 var(--mono);
+      text-transform: uppercase;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: center;
+      padding: 18px 0;
+      animation: enter 420ms 80ms ease-out both;
+    }
+
+    .tabs, .route-switch {
+      display: inline-grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(92px, auto);
+      border: 1px solid var(--ink);
+      background: var(--surface);
+    }
+
+    .tab, .route-button {
+      min-height: 38px;
+      padding: 8px 13px;
+      border: 0;
+      border-right: 1px solid var(--ink);
+      color: var(--ink);
+      background: transparent;
+      cursor: pointer;
+      font: 800 11px/1 var(--mono);
+      text-transform: uppercase;
+    }
+
+    .tab:last-child, .route-button:last-child { border-right: 0; }
+    .tab[aria-selected="true"] { color: white; background: var(--ink); }
+    .route-button[aria-pressed="true"] { background: var(--control); }
+
+    .panel[hidden] { display: none; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 18px;
+      align-items: start;
+      animation: enter 480ms 140ms ease-out both;
+    }
+
+    .diagram {
+      min-width: 0;
+      border: 1px solid var(--ink);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .diagram-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      min-height: 68px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--ink);
+    }
+
+    .diagram-head h2,
+    .section-head h2,
+    .detail h2 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.2;
+      font-weight: 800;
+    }
+
+    .route-copy {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .route-code {
+      color: var(--muted);
+      font: 700 10px/1.2 var(--mono);
+      text-transform: uppercase;
+    }
+
+    .flow-body { padding: 18px; }
+
+    .control-node {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 74px minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      min-height: 104px;
+      padding: 15px;
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+      color: var(--ink);
+      background: var(--control);
+      text-align: left;
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .control-node:hover { transform: translateY(-2px); box-shadow: 5px 5px 0 var(--ink); }
+
+    .node-index {
+      display: grid;
+      place-items: center;
+      width: 58px;
+      height: 58px;
+      border: 2px solid var(--ink);
+      background: var(--surface);
+      font: 900 20px/1 var(--mono);
+    }
+
+    .node-title {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 19px;
+      line-height: 1.1;
+      font-weight: 800;
+    }
+
+    .node-subtitle {
+      display: block;
+      color: rgba(21, 24, 23, 0.72);
+      font: 700 11px/1.35 var(--mono);
+    }
+
+    .node-model {
+      min-width: 165px;
+      padding-left: 16px;
+      border-left: 1px solid rgba(21, 24, 23, 0.45);
+      font: 800 11px/1.5 var(--mono);
+    }
+
+    .downlink {
+      height: 38px;
+      display: grid;
+      place-items: center;
+      color: var(--line-strong);
+      font: 900 18px/1 var(--mono);
+    }
+
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 34px;
+      align-items: stretch;
+    }
+
+    .stage {
+      position: relative;
+      min-width: 0;
+      padding-top: 30px;
+    }
+
+    .stage:not(:last-child)::after {
+      content: "->";
+      position: absolute;
+      top: 49%;
+      right: -28px;
+      width: 22px;
+      color: var(--line-strong);
+      font: 900 16px/1 var(--mono);
+      text-align: center;
+    }
+
+    .stage-label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: var(--muted);
+      font: 800 10px/1 var(--mono);
+      text-transform: uppercase;
+    }
+
+    .stage-stack {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      min-height: 288px;
+    }
+
+    .agent-node {
+      width: 100%;
+      min-height: 132px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 13px;
+      border: 1px solid var(--ink);
+      border-top: 8px solid var(--accent);
+      border-radius: var(--radius);
+      color: var(--ink);
+      background: var(--surface);
+      text-align: left;
+      cursor: pointer;
+      opacity: 0.3;
+      filter: grayscale(0.7);
+      transition: opacity 180ms ease, filter 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .agent-node.is-active {
+      opacity: 1;
+      filter: none;
+      box-shadow: 4px 4px 0 color-mix(in srgb, var(--accent) 62%, var(--ink));
+    }
+
+    .agent-node.is-active:hover { transform: translateY(-2px); }
+    .agent-node.is-selected { outline: 3px solid var(--ink); outline-offset: 2px; }
+    .agent-node[data-agent="evidence"] { --accent: var(--evidence); }
+    .agent-node[data-agent="scout"] { --accent: var(--scout); }
+    .agent-node[data-agent="executor"] { --accent: var(--execute); }
+    .agent-node[data-agent="verifier"] { --accent: var(--verify); }
+    .agent-node[data-agent="reviewer"] { --accent: var(--review); }
+    .agent-node[data-agent="risk"] { --accent: var(--risk); }
+
+    .agent-type {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font: 800 9px/1 var(--mono);
+      text-transform: uppercase;
+    }
+
+    .agent-name {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 17px;
+      line-height: 1.1;
+      font-weight: 800;
+    }
+
+    .agent-purpose {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .agent-foot {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 14px;
+      font: 700 9px/1.2 var(--mono);
+      text-transform: uppercase;
+    }
+
+    .fanout {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+    }
+
+    .fanout span {
+      display: grid;
+      place-items: center;
+      min-height: 24px;
+      border: 1px solid var(--ink);
+      background: var(--execute);
+      font: 800 9px/1 var(--mono);
+    }
+
+    .recovery-rail {
+      display: none;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin-top: 18px;
+      padding: 11px 13px;
+      border: 1px dashed var(--danger);
+      color: var(--danger);
+      background: rgba(255, 114, 92, 0.08);
+      font: 800 10px/1.4 var(--mono);
+      text-transform: uppercase;
+    }
+
+    .recovery-rail.is-visible { display: grid; }
+    .recovery-line { height: 1px; background: var(--danger); }
+
+    .detail {
+      position: sticky;
+      top: 18px;
+      min-height: 560px;
+      border: 1px solid var(--ink);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .detail-accent { height: 11px; background: var(--control); }
+    .detail-body { padding: 18px; }
+
+    .detail-kicker {
+      margin-bottom: 7px;
+      color: var(--muted);
+      font: 800 10px/1.2 var(--mono);
+      text-transform: uppercase;
+    }
+
+    .detail-model {
+      margin: 12px 0 18px;
+      padding: 10px;
+      border: 1px solid var(--line-strong);
+      background: var(--paper);
+      font: 700 11px/1.5 var(--mono);
+      overflow-wrap: anywhere;
+    }
+
+    .detail-section {
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .detail-section h3 {
+      margin: 0 0 8px;
+      font: 800 10px/1.2 var(--mono);
+      text-transform: uppercase;
+    }
+
+    .detail-section p,
+    .detail-section li {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .detail-section p { margin: 0; }
+    .detail-section ul { margin: 0; padding-left: 17px; }
+
+    .permission-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+    }
+
+    .permission {
+      min-height: 42px;
+      display: grid;
+      place-items: center;
+      padding: 4px;
+      border: 1px solid var(--line-strong);
+      color: var(--muted);
+      font: 800 9px/1.2 var(--mono);
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .permission.allow { color: var(--ink); background: rgba(184, 240, 74, 0.35); }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      padding: 14px 18px;
+      border-top: 1px solid var(--ink);
+      color: var(--muted);
+      font: 700 9px/1.3 var(--mono);
+      text-transform: uppercase;
+    }
+
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .legend i { width: 10px; height: 10px; border: 1px solid var(--ink); background: var(--swatch); }
+
+    .section-frame {
+      border: 1px solid var(--ink);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      animation: enter 360ms ease-out both;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 20px;
+      padding: 17px 18px;
+      border-bottom: 1px solid var(--ink);
+    }
+
+    .section-head p {
+      max-width: 620px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .role-table-wrap { overflow-x: auto; }
+
+    .role-table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .role-table th,
+    .role-table td {
+      padding: 14px 12px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .role-table th:last-child,
+    .role-table td:last-child { border-right: 0; }
+    .role-table tr:last-child td { border-bottom: 0; }
+
+    .role-table th {
+      color: var(--muted);
+      background: var(--paper);
+      font: 800 9px/1.2 var(--mono);
+      text-transform: uppercase;
+    }
+
+    .role-table td { font-size: 12px; line-height: 1.45; }
+    .role-table code { font: 700 10px/1.4 var(--mono); overflow-wrap: anywhere; }
+
+    .role-name-cell {
+      border-left: 8px solid var(--row-accent);
+      font-weight: 800;
+    }
+
+    .protocol-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-bottom: 1px solid var(--ink);
+    }
+
+    .protocol {
+      min-width: 0;
+      padding: 18px;
+      border-right: 1px solid var(--ink);
+    }
+
+    .protocol:last-child { border-right: 0; }
+
+    .protocol h3 {
+      margin: 0 0 4px;
+      font-size: 16px;
+    }
+
+    .protocol p {
+      min-height: 38px;
+      margin: 0 0 13px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    pre {
+      margin: 0;
+      padding: 13px;
+      border: 1px solid var(--ink);
+      border-left: 6px solid var(--protocol-accent);
+      background: #181d1b;
+      color: #eaf1ed;
+      font: 700 10px/1.65 var(--mono);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .rules-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .rule-band {
+      padding: 20px;
+      border-right: 1px solid var(--ink);
+    }
+
+    .rule-band:last-child { border-right: 0; }
+
+    .rule-band h3 { margin: 0 0 14px; font-size: 16px; }
+
+    .rule-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .rule-list li {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .rule-list b {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--ink);
+      color: var(--ink);
+      background: var(--rule-accent);
+      font: 800 10px/1 var(--mono);
+    }
+
+    .summary-band {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      margin-top: 18px;
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: white;
+      animation: enter 420ms 220ms ease-out both;
+    }
+
+    .summary-cell {
+      min-height: 104px;
+      padding: 16px;
+      border-right: 1px solid #4d5652;
+    }
+
+    .summary-cell:last-child { border-right: 0; }
+    .summary-cell strong { display: block; margin-bottom: 8px; font-size: 14px; }
+    .summary-cell p { margin: 0; color: #b9c3bf; font-size: 11px; line-height: 1.5; }
+
+    @keyframes enter {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+    }
+
+    @media (max-width: 1100px) {
+      .masthead { grid-template-columns: 1fr; align-items: start; }
+      .metrics { min-width: 0; width: 100%; }
+      .workspace { grid-template-columns: 1fr; }
+      .detail { position: static; min-height: 0; }
+      .flow-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stage:nth-child(2)::after { display: none; }
+      .stage-stack { min-height: 0; }
+      .protocol-grid { grid-template-columns: 1fr; }
+      .protocol { border-right: 0; border-bottom: 1px solid var(--ink); }
+      .protocol:last-child { border-bottom: 0; }
+    }
+
+    @media (max-width: 720px) {
+      .shell { width: min(100% - 20px, 1480px); padding-top: 16px; }
+      h1 { font-size: 38px; }
+      .masthead-copy { font-size: 13px; }
+      .metrics { grid-template-columns: 1fr; }
+      .metric { min-height: 62px; border-right: 0; border-bottom: 1px solid var(--ink); }
+      .metric:last-child { border-bottom: 0; }
+      .toolbar { align-items: stretch; flex-direction: column; }
+      .tabs, .route-switch { width: 100%; grid-auto-columns: 1fr; }
+      .tab, .route-button { padding-inline: 7px; font-size: 9px; }
+      .diagram-head { grid-template-columns: 1fr; }
+      .control-node { grid-template-columns: 52px minmax(0, 1fr); }
+      .node-index { width: 44px; height: 44px; }
+      .node-model { grid-column: 1 / -1; min-width: 0; padding: 9px 0 0; border-left: 0; border-top: 1px solid rgba(21, 24, 23, 0.45); }
+      .flow-grid { grid-template-columns: 1fr; gap: 18px; }
+      .stage { padding-top: 24px; }
+      .stage:not(:last-child)::after { display: none; }
+      .agent-node { min-height: 116px; }
+      .section-head { align-items: start; flex-direction: column; }
+      .rules-grid, .summary-band { grid-template-columns: 1fr; }
+      .rule-band, .summary-cell { border-right: 0; border-bottom: 1px solid var(--ink); }
+      .rule-band:last-child, .summary-cell:last-child { border-bottom: 0; }
+      .permission-strip { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media print {
+      body { background: white; }
+      .shell { width: 100%; padding: 0; }
+      .toolbar { display: none; }
+      .detail { position: static; box-shadow: none; }
+      .diagram, .section-frame { box-shadow: none; }
+      .panel[hidden] { display: block; margin-top: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="masthead">
+      <div>
+        <div class="eyebrow">
+          <span class="live-mark">Live configuration</span>
+          <span>Default agent: orchestrator</span>
+          <span>Terminal subagents only</span>
+        </div>
+        <h1>OpenCode orchestration map</h1>
+        <p class="masthead-copy">The orchestrator owns every routing decision. Independent agents handle investigation, implementation, and correctness review. Mechanical evidence and verification run on smaller models. A dedicated reviewer enters only when the change carries meaningful risk.</p>
+      </div>
+      <div class="metrics" aria-label="Orchestration metrics">
+        <div class="metric"><strong>1</strong><span>delegation authority</span></div>
+        <div class="metric"><strong>6</strong><span>terminal roles</span></div>
+        <div class="metric"><strong>3</strong><span>executor fan-out max</span></div>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <div class="tabs" role="tablist" aria-label="Visualization views">
+        <button class="tab" role="tab" aria-selected="true" aria-controls="flow-panel" id="flow-tab" data-tab="flow-panel">Flow</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="roles-panel" id="roles-tab" data-tab="roles-panel">Roles</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="protocols-panel" id="protocols-tab" data-tab="protocols-panel">Protocols</button>
+      </div>
+      <div class="route-switch" aria-label="Flow scenario">
+        <button class="route-button" aria-pressed="true" data-route="normal">Normal</button>
+        <button class="route-button" aria-pressed="false" data-route="broad">Broad / risky</button>
+        <button class="route-button" aria-pressed="false" data-route="recovery">Recovery</button>
+      </div>
+    </div>
+
+    <section class="panel" id="flow-panel" role="tabpanel" aria-labelledby="flow-tab">
+      <div class="workspace">
+        <div class="diagram">
+          <div class="diagram-head">
+            <div>
+              <h2 id="route-title">Normal change</h2>
+              <p class="route-copy" id="route-copy">A scoped implementation goes directly to execution, mandatory verification, and correctness review.</p>
+            </div>
+            <div class="route-code" id="route-code">Plan -> Execute -> Verify -> Review</div>
+          </div>
+
+          <div class="flow-body">
+            <button class="control-node agent-select is-selected" data-agent="orchestrator" aria-label="Inspect orchestrator">
+              <span class="node-index">00</span>
+              <span>
+                <span class="node-title">Orchestrator</span>
+                <span class="node-subtitle">Plans, decomposes, routes, recovers, integrates, and answers</span>
+              </span>
+              <span class="node-model">Your primary model<br>high reasoning</span>
+            </button>
+
+            <div class="downlink" aria-hidden="true">|</div>
+
+            <div class="flow-grid">
+              <section class="stage">
+                <div class="stage-label">01 / Understand</div>
+                <div class="stage-stack">
+                  <button class="agent-node agent-select" data-agent="evidence">
+                    <span>
+                      <span class="agent-type">Conditional mapper</span>
+                      <span class="agent-name">Evidence</span>
+                      <span class="agent-purpose">Mechanical scope, facts, absences, and limits.</span>
+                    </span>
+                    <span class="agent-foot"><span>Cost-efficient</span><span>read only</span></span>
+                  </button>
+                </div>
+              </section>
+
+              <section class="stage">
+                <div class="stage-label">02 / Implement</div>
+                <div class="stage-stack">
+                  <button class="agent-node agent-select" data-agent="executor">
+                    <span>
+                      <span class="agent-type">Mandatory writer</span>
+                      <span class="agent-name">Executor</span>
+                      <span class="agent-purpose">One bounded subsystem, normally five files or fewer.</span>
+                    </span>
+                    <span class="agent-foot"><span>Capable model</span><span>write + shell</span></span>
+                  </button>
+                  <div class="fanout" aria-label="Maximum parallel executors">
+                    <span>E1</span><span>E2</span><span>E3</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="stage">
+                <div class="stage-label">03 / Verify</div>
+                <div class="stage-stack">
+                  <button class="agent-node agent-select" data-agent="verifier">
+                    <span>
+                      <span class="agent-type">Mandatory after writes</span>
+                      <span class="agent-name">Verifier</span>
+                      <span class="agent-purpose">Runs exact checks, then captures final git state.</span>
+                    </span>
+                    <span class="agent-foot"><span>Cost-efficient</span><span>allowlisted shell</span></span>
+                  </button>
+                </div>
+              </section>
+
+              <section class="stage">
+                <div class="stage-label">04 / Review</div>
+                <div class="stage-stack">
+                  <button class="agent-node agent-select" data-agent="reviewer">
+                    <span>
+                      <span class="agent-type">Mandatory correctness</span>
+                      <span class="agent-name">Reviewer</span>
+                      <span class="agent-purpose">Fresh inspection of behavior, contracts, and coverage.</span>
+                    </span>
+                    <span class="agent-foot"><span>Capable model</span><span>read only</span></span>
+                  </button>
+                </div>
+              </section>
+            </div>
+
+            <div class="recovery-rail" id="recovery-rail">
+              <span>Failed report or inconsistent state</span>
+              <span class="recovery-line"></span>
+              <span>Verify -> map -> smaller correction -> verify</span>
+            </div>
+          </div>
+
+          <div class="legend">
+            <span><i style="--swatch: var(--control)"></i>control</span>
+            <span><i style="--swatch: var(--evidence)"></i>mechanical evidence</span>
+            <span><i style="--swatch: var(--execute)"></i>write authority</span>
+            <span><i style="--swatch: var(--verify)"></i>command evidence</span>
+            <span><i style="--swatch: var(--review)"></i>correctness review</span>
+          </div>
+        </div>
+
+        <aside class="detail" aria-live="polite">
+          <div class="detail-accent" id="detail-accent"></div>
+          <div class="detail-body">
+            <div class="detail-kicker" id="detail-kicker">Primary / control</div>
+            <h2 id="detail-name">Orchestrator</h2>
+            <div class="detail-model" id="detail-model">Your primary model / high</div>
+
+            <section class="detail-section">
+              <h3>Responsibility</h3>
+              <p id="detail-purpose"></p>
+            </section>
+
+            <section class="detail-section">
+              <h3>Authority</h3>
+              <div class="permission-strip" id="detail-permissions"></div>
+            </section>
+
+            <section class="detail-section">
+              <h3>Activation</h3>
+              <ul id="detail-triggers"></ul>
+            </section>
+
+            <section class="detail-section">
+              <h3>Output contract</h3>
+              <p id="detail-output"></p>
+            </section>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="panel" id="roles-panel" role="tabpanel" aria-labelledby="roles-tab" hidden>
+      <div class="section-frame">
+        <div class="section-head">
+          <h2>Role matrix</h2>
+          <p>Only the orchestrator can invoke agents. Every subagent is terminal, so context isolation never creates a second orchestration layer.</p>
+        </div>
+        <div class="role-table-wrap">
+          <table class="role-table">
+            <thead>
+              <tr>
+                <th style="width: 15%">Role</th>
+                <th style="width: 20%">Model</th>
+                <th style="width: 10%">Reasoning</th>
+                <th style="width: 19%">Access</th>
+                <th style="width: 22%">Primary job</th>
+                <th style="width: 14%">Invocation</th>
+              </tr>
+            </thead>
+            <tbody id="role-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="protocols-panel" role="tabpanel" aria-labelledby="protocols-tab" hidden>
+      <div class="section-frame">
+        <div class="section-head">
+          <h2>Compact report protocols</h2>
+          <p>Plaintext records minimize formatting overhead. The orchestrator validates semantic fields and never invents missing facts.</p>
+        </div>
+
+        <div class="protocol-grid">
+          <article class="protocol" style="--protocol-accent: var(--evidence)">
+            <h3>Evidence</h3>
+            <p>Search coverage makes negative findings auditable without inviting diagnosis.</p>
+            <pre>SCOPE|src/**|booking references
+FACT|src/api.ts|42|createBooking|accepts staffId
+NOT_FOUND|migration|db/migrations/**
+LIMIT|vendor/**|excluded dependency code</pre>
+          </article>
+
+          <article class="protocol" style="--protocol-accent: var(--execute)">
+            <h3>Executor</h3>
+            <p>Implementation narration is advisory; verifier establishes canonical state.</p>
+            <pre>STATUS|success
+SUMMARY|updated booking validation
+FILE|src/api.ts|rejects missing staffId
+CHECK|targeted test|pass|3 passed
+UNCERTAINTY|none</pre>
+          </article>
+
+          <article class="protocol" style="--protocol-accent: var(--verify)">
+            <h3>Verifier</h3>
+            <p>Exact checks run first. Final git inspection captures generated artifacts.</p>
+            <pre>COMMAND|pnpm test|pass|0|42 passed
+COMMAND|git status --short|pass|0|1 modified
+FILE|src/api.ts|modified|validation added
+TEST|pnpm test|pass|42 passed
+FAILURE|none
+UNTRACKED|none
+NOT_RUN|none|none</pre>
+          </article>
+        </div>
+
+        <div class="rules-grid">
+          <section class="rule-band" style="--rule-accent: var(--evidence)">
+            <h3>Evidence triggers</h3>
+            <ol class="rule-list">
+              <li><b>01</b><span>Likely search space exceeds eight files.</span></li>
+              <li><b>02</b><span>More than ten files changed.</span></li>
+              <li><b>03</b><span>Executor reporting is missing or inconsistent.</span></li>
+              <li><b>04</b><span>API, schema, SQL, or broad call sites need inventory.</span></li>
+              <li><b>05</b><span>A broad review packet needs compression.</span></li>
+            </ol>
+          </section>
+
+          <section class="rule-band" style="--rule-accent: var(--risk)">
+            <h3>Risk review triggers</h3>
+            <ol class="rule-list">
+              <li><b>01</b><span>Security, auth, persistence, migration, or data-loss exposure.</span></li>
+              <li><b>02</b><span>API/schema, analytics, concurrency, or infrastructure changes.</span></li>
+              <li><b>03</b><span>User-visible, cross-module, multi-file, or weakly verified behavior.</span></li>
+              <li><b>04</b><span>Dependencies, lockfiles, broad refactors, or ambiguous requirements.</span></li>
+              <li><b>05</b><span>Reviewer disagreement, escalation, or unresolved confidence gaps.</span></li>
+            </ol>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="summary-band" aria-label="Architecture summary">
+      <div class="summary-cell">
+        <strong>Single control plane</strong>
+        <p>The orchestrator is read-only and owns decomposition, parallelism, recovery, review routing, and the final answer.</p>
+      </div>
+      <div class="summary-cell">
+        <strong>Canonical state comes from verification</strong>
+        <p>Executor reports are checked against exact commands, final git status, final diff, tests, failures, and untracked files.</p>
+      </div>
+      <div class="summary-cell">
+        <strong>One bounded correction cycle</strong>
+        <p>Failed reporting or review findings produce a smaller executor packet, mandatory re-verification, and one affected re-review.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const agentData = {
+      orchestrator: {
+        name: "Orchestrator",
+        kicker: "Primary / sole delegation authority",
+        model: "Your primary model / high",
+        accent: "var(--control)",
+        purpose: "Plans, decomposes, routes, validates reports, coordinates recovery, integrates reviewer findings, and produces the final answer. It cannot edit files or run shell commands.",
+        permissions: { read: true, edit: false, shell: false, agents: true, review: true, write: false },
+        triggers: ["Always active", "Splits broad work into at most three independent executors", "Stops after one failed correction/re-review cycle"],
+        output: "Final synthesis: changed files, commands and tests, reviewer coverage, executor-report reliability, and unresolved risks."
+      },
+      evidence: {
+        name: "Evidence",
+        kicker: "Conditional / mechanical mapping",
+        model: "Cost-efficient model / fast",
+        accent: "var(--evidence)",
+        purpose: "Builds auditable repository maps without diagnosing. Negative evidence is accepted only when the searched scope is explicit.",
+        permissions: { read: true, edit: false, shell: false, agents: false, review: false, write: false },
+        triggers: ["Search scope over eight files", "More than ten changed files", "Missing or inconsistent executor report", "API/schema/SQL/call-site inventory", "Broad review compression"],
+        output: "SCOPE, FACT, NOT_FOUND, and LIMIT records. Maximum 80 FACT lines."
+      },
+      executor: {
+        name: "Executor",
+        kicker: "Mandatory / bounded implementation",
+        model: "Capable model / high",
+        accent: "var(--execute)",
+        purpose: "Implements one concrete objective inside explicitly owned files. It verifies supplied diagnoses, avoids opportunistic refactors, and reports early when scope or context becomes unsafe.",
+        permissions: { read: true, edit: true, shell: true, agents: false, review: false, write: true },
+        triggers: ["Every repository write", "Normally one subsystem and five files or fewer", "Up to three parallel instances for disjoint ownership"],
+        output: "STATUS, SUMMARY, FILE, CHECK, and UNCERTAINTY records."
+      },
+      verifier: {
+        name: "Verifier",
+        kicker: "Mandatory after writes / canonical state",
+        model: "Cost-efficient model / fast",
+        accent: "var(--verify)",
+        purpose: "Runs only exact allowlisted commands. Tests run before final git inspection so generated or mutated files enter the canonical review packet.",
+        permissions: { read: true, edit: false, shell: true, agents: false, review: false, write: false },
+        triggers: ["After every executor write task", "CI/log triage", "Executor recovery", "Final tests, typechecks, lint, status, and diff"],
+        output: "COMMAND, FILE, TEST, FAILURE, UNTRACKED, and NOT_RUN records. No correctness verdict."
+      },
+      reviewer: {
+        name: "Reviewer",
+        kicker: "Mandatory / correctness review",
+        model: "Capable model / high",
+        accent: "var(--review)",
+        purpose: "Performs a fresh read-only pass over current files and scoped changes. Checks correctness, integration, invariants, contracts, compatibility, tests, and user intent.",
+        permissions: { read: true, edit: false, shell: false, agents: false, review: true, write: false },
+        triggers: ["After implementation and mandatory verification", "Re-run once after a narrow correction"],
+        output: "Verdict, issues, coverage, risk level, and stop/escalate recommendation."
+      },
+      publisher: {
+        name: "Publisher",
+        kicker: "Conditional / git publishing",
+        model: "Cost-efficient model / fast",
+        accent: "var(--execute)",
+        purpose: "Stages, commits, pushes, and creates PRs with exact path control. Verifies repository identity and state before and after mutations.",
+        permissions: { read: true, edit: false, shell: true, agents: false, review: false, write: false },
+        triggers: ["Explicit publish request only", "After review passes", "Commit, push, or PR creation"],
+        output: "Commit hash, remote state confirmation, worktree cleanliness report."
+      }
+    };
+
+    const routeData = {
+      normal: {
+        title: "Normal change",
+        copy: "A scoped implementation goes directly to execution, mandatory verification, and correctness review.",
+        code: "Plan -> Execute -> Verify -> Review",
+        active: ["orchestrator", "executor", "verifier", "reviewer"]
+      },
+      broad: {
+        title: "Broad or risky change",
+        copy: "Mechanical mapping precedes bounded execution; independent review follows the canonical verifier packet.",
+        code: "Map -> Execute x3 -> Verify -> Review",
+        active: ["orchestrator", "evidence", "executor", "verifier", "reviewer"]
+      },
+      recovery: {
+        title: "Recovery route",
+        copy: "A failed or inconsistent executor report is recovered from repository state, then narrowed to one correction and re-verified.",
+        code: "Verify -> map -> correct -> verify -> review",
+        active: ["orchestrator", "evidence", "executor", "verifier", "reviewer"]
+      }
+    };
+
+    const roleRows = [
+      ["orchestrator", "Always"],
+      ["evidence", "Conditional"],
+      ["executor", "Every write"],
+      ["verifier", "After every write"],
+      ["reviewer", "After verification"],
+      ["publisher", "Publish only"]
+    ];
+
+    const permissionLabels = [
+      ["read", "Read"], ["write", "Write"], ["edit", "Edit"],
+      ["shell", "Shell"], ["agents", "Agents"], ["review", "Review"]
+    ];
+
+    function selectAgent(key) {
+      const data = agentData[key];
+      if (!data) return;
+      document.querySelectorAll(".agent-select").forEach((node) => {
+        node.classList.toggle("is-selected", node.dataset.agent === key);
+      });
+      document.getElementById("detail-accent").style.background = data.accent;
+      document.getElementById("detail-kicker").textContent = data.kicker;
+      document.getElementById("detail-name").textContent = data.name;
+      document.getElementById("detail-model").textContent = data.model;
+      document.getElementById("detail-purpose").textContent = data.purpose;
+      document.getElementById("detail-output").textContent = data.output;
+
+      const permissions = document.getElementById("detail-permissions");
+      permissions.innerHTML = permissionLabels.map(([field, label]) =>
+        `<span class="permission ${data.permissions[field] ? "allow" : ""}">${label}<br>${data.permissions[field] ? "allow" : "deny"}</span>`
+      ).join("");
+
+      const triggers = document.getElementById("detail-triggers");
+      triggers.innerHTML = data.triggers.map((trigger) => `<li>${trigger}</li>`).join("");
+    }
+
+    function setRoute(key) {
+      const route = routeData[key];
+      document.querySelectorAll(".route-button").forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.route === key));
+      });
+      document.getElementById("route-title").textContent = route.title;
+      document.getElementById("route-copy").textContent = route.copy;
+      document.getElementById("route-code").textContent = route.code;
+      document.getElementById("recovery-rail").classList.toggle("is-visible", key === "recovery");
+      document.querySelectorAll(".agent-node").forEach((node) => {
+        node.classList.toggle("is-active", route.active.includes(node.dataset.agent));
+      });
+    }
+
+    function setTab(panelId) {
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.setAttribute("aria-selected", String(tab.dataset.tab === panelId));
+      });
+      document.querySelectorAll(".panel").forEach((panel) => {
+        panel.hidden = panel.id !== panelId;
+      });
+    }
+
+    function buildRoleTable() {
+      const body = document.getElementById("role-table-body");
+      body.innerHTML = roleRows.map(([key, invocation]) => {
+        const data = agentData[key];
+        const access = permissionLabels
+          .filter(([field]) => data.permissions[field])
+          .map(([, label]) => label)
+          .join(", ");
+        const modelParts = data.model.split(" / ");
+        return `<tr style="--row-accent: ${data.accent}">
+          <td class="role-name-cell">${data.name}</td>
+          <td><code>${modelParts[0]}</code></td>
+          <td>${modelParts[1] || "fixed"}</td>
+          <td>${access}</td>
+          <td>${data.purpose}</td>
+          <td>${invocation}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    document.querySelectorAll(".agent-select").forEach((button) => {
+      button.addEventListener("click", () => selectAgent(button.dataset.agent));
+    });
+
+    document.querySelectorAll(".route-button").forEach((button) => {
+      button.addEventListener("click", () => setRoute(button.dataset.route));
+    });
+
+    document.querySelectorAll(".tab").forEach((button) => {
+      button.addEventListener("click", () => setTab(button.dataset.tab));
+    });
+
+    buildRoleTable();
+    setRoute("normal");
+    selectAgent("orchestrator");
+  </script>
+</body>
+</html>

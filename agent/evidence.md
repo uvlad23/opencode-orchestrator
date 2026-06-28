@@ -1,6 +1,7 @@
 ---
 description: Mechanical repository research and contextual mapping. Produces auditable facts without diagnosis or judgment.
 mode: subagent
+model: opencode-go/deepseek-v4-flash
 permission:
   read: allow
   edit: deny

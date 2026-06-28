@@ -1,6 +1,7 @@
 ---
-description: Exact command execution, failure triage, and output compression. Captures canonical state without judging correctness.
+description: Default local mechanical verifier for exact local test/build/lint/typecheck and compact command evidence. Captures canonical state without judging correctness.
 mode: subagent
+model: opencode-go/deepseek-v4-flash
 permission:
   read: allow
   edit: deny

@@ -1,6 +1,7 @@
 ---
-description: Git staging, commit, push, and PR creation. Verifies repository identity and state before and after mutations.
+description: Git staging, commit, push, and PR creation. Verifies repository identity and state before and after mutations. Called only after reviews pass and only when explicitly requested.
 mode: subagent
+model: opencode-go/deepseek-v4-pro
 permission:
   read: allow
   edit: deny

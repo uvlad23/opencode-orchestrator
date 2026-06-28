@@ -31,8 +31,21 @@ else
   echo "--- Skill not found: ${SKILL_PATH}"
 fi
 
-# --- Uninstall agents ---
-AGENT_FILES=("evidence.md" "executor.md" "verifier.md" "reviewer.md" "publisher.md")
+# --- Uninstall agents (all orchestrator agents) ---
+AGENT_FILES=(
+  "orchestrator.md"
+  "evidence.md"
+  "scout.md"
+  "executor.md"
+  "executor-lite.md"
+  "executor-patch.md"
+  "verifier.md"
+  "verifier-pro.md"
+  "reviewer.md"
+  "risk-reviewer.md"
+  "publisher.md"
+)
+
 for agent_name in "${AGENT_FILES[@]}"; do
   agent_file="${AGENT_DIR}/${agent_name}"
   if [ -e "${agent_file}" ]; then
